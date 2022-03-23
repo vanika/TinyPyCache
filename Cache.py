@@ -16,6 +16,12 @@ class Cache:
     def set(self, key, value):
         raise NotImplementedError("Please Implement this method")
 
+    def remove(self, key):
+        raise NotImplementedError("Please Implement this method")
+
+    def get_victim(self):
+        raise NotImplementedError("Please Implement this method")
+
     def __contains__(self, item) -> bool:
         return item in self.cache
 

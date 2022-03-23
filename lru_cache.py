@@ -1,42 +1,61 @@
 from collections import OrderedDict
 from typing import Optional, Tuple, Any
 
-from Cache import Cache
 
 
-class LRUCache(Cache):
+class LRUCache:
 
     def __init__(self, capacity=128):
-        super().__init__(capacity)
+        self.cache = OrderedDict()
+        self.size = capacity
 
-    def get(self, key: int) -> int:
+    def __contains__(self, item) -> bool:
+        return item in self.cache
+
+    def __len__(self) -> int:
+        return len(self.cache)
+
+    def is_full(self) -> bool:
+        return len(self.cache) == self.size
+
+    def get(self, key: str) -> Optional[Any]:
         if key not in self.cache:
-            return -1
+            return None
         else:
             self.cache.move_to_end(key)  # Gotta keep this pair fresh, move to end of OrderedDict
             return self.cache[key]
 
-    def put(self, key: int, value: int) -> Optional[Tuple[Any, Any]]:
+    def set(self, key: str, value: int) -> Optional[Tuple[Any, Any]]:
 
-        evicted_key = evicted_value = None
-        if key not in self.cache:
-            if len(self.cache) >= self.size:
-                evicted_key, evicted_value = self.cache.popitem(last=False)
-        else:
-            self.cache.move_to_end(key)  # Gotta keep this pair fresh, move to end of OrderedDict
-            self.cache[key] = value
+        self.cache[key] = value
+        self.cache.move_to_end(key)
+        if len(self.cache) > self.size:
+            return self.cache.popitem(last=False)
 
-        return evicted_key, evicted_value
+        return None, None
 
-    def set(self, key, value) -> None:
-        if key in self.cache:
-            self.cache[key] = value
-
-    def pop(self, key) -> Optional[Tuple[Any, Any]]:
+    def remove(self, key) -> Optional[Tuple[Any, Any]]:
         if key in self.cache:
             return self.cache.popitem(key)
 
         return None
 
+    def get_victim(self) -> Optional[Tuple[Any, Any]]:
+        if self.size == len(self.cache):
+            oldest = next(iter(self.cache))
+            return oldest
 
+        return None
+
+
+if __name__ == "__main__":
+
+    c = LRUCache(2)
+    c.put("primo", 10)
+    c.put("secondo", 20)
+    c.get("primo")
+    print(len(c))
+    print(c.get_victim())
+    print(c.put("terzo", 30))
+    print(len(c))
 

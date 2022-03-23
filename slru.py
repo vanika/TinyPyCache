@@ -11,45 +11,56 @@ If an item in the protected segment is accessed, it becomes the most recently us
 
 
 """
+from typing import Optional, Tuple, Any
+
 from lru_cache import LRUCache
 
 
-class SLRUCache():
+class SLRUCache:
 
-    def __init__(self, size=128):
-        super().__init__(size)
-        self.size = size
-        self.probational_cache = LRUCache(size)
-        self.protected_cache = LRUCache(size)
+    def __init__(self, probation_cap=128, protected_cap=128):
+        self.probation_cap = probation_cap
+        self.protected_cap = protected_cap
+        self.probational_cache = LRUCache(probation_cap)
+        self.protected_cache = LRUCache(protected_cap)
 
-    def get(self, key: int) -> int:
+    def set(self, key, value):
 
-        if key in self.probational_cache:
-            item = self.probational_cache.get(key)
-            evicted_key, evicted_value = self.protected_cache.put(key, item)
-            if evicted_key and evicted_value:
-                self.probational_cache.put(evicted_key, evicted_value)
+        if key in self.protected_cache: # already present in protected, update
+            self.protected_cache.set(key, value)
 
-            return item
+        elif key in self.probational_cache: # already present in probational, update and promote
+            self.probational_cache.remove(key)
+            self.protected_cache.set(key, value)
+        else: # new item
+            self.probational_cache.set(key, value)
+
+    def get(self, key):
 
         if key in self.protected_cache:
             return self.protected_cache.get(key)
 
-    def put(self, key: int, value: int) -> None:
+        if key in self.probational_cache:
+            item_value = self.probational_cache.get(key)
+            self.protected_cache.set(key, item_value)
+            return item_value
 
-        self.probational_cache.put(key, value)
+        return None
 
-    def set(self, key: int, value: int) -> None:
+    def remove(self, key: str):
 
         if key in self.protected_cache:
-            self.protected_cache.set(key, value)
-            return
-
+            return self.protected_cache.remove(key)
         if key in self.probational_cache:
-            self.probational_cache.pop(key)
-            self.probational_cache.put(key, value)
-            return
+            return self.probational_cache.remove(key)
 
+        return None
+
+    def get_victim(self) -> Optional[Tuple[Any, Any]]:
+        if len(self) >= (self.protected_cap + self.probation_cap):
+            return self.probational_cache.get_victim()
+
+        return None
 
     def __contains__(self, item) -> bool:
         return item in self.probational_cache or item in self.protected_cache

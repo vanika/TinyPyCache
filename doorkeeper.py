@@ -8,7 +8,7 @@ from bitarray import bitarray
 
 class BloomFilter:
 
-    def __init__(self, num_elem: int, false_positive_rate: float, probe_function):
+    def __init__(self, num_elem: int, false_positive_rate: float):
         self.optimal_m = ceil((num_elem * abs(log2(false_positive_rate))) / log2(2) ** 2)
         self.optimal_k = ceil((self.optimal_m / num_elem) * log2(2))
         self.bits = bitarray(self.optimal_m)
