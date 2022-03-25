@@ -2,7 +2,6 @@ from collections import OrderedDict
 from typing import Optional, Tuple, Any
 
 
-
 class LRUCache:
 
     def __init__(self, capacity=128):
@@ -46,16 +45,3 @@ class LRUCache:
             return oldest
 
         return None
-
-
-if __name__ == "__main__":
-
-    c = LRUCache(2)
-    c.put("primo", 10)
-    c.put("secondo", 20)
-    c.get("primo")
-    print(len(c))
-    print(c.get_victim())
-    print(c.put("terzo", 30))
-    print(len(c))
-
