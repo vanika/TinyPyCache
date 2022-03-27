@@ -1,9 +1,31 @@
+import functools
 import math
+from collections import defaultdict
 
 from countminsketch import CountMinSketch
 from doorkeeper import Doorkeeper
 from lru_cache import LRUCache
 from slru import SLRUCache
+from statistics import Statistics
+
+def wrapper(get_func):
+    @functools.wraps(get_func)
+    def _impl(self, key):
+        if not self.statistics:
+            return get_func
+        self.statistics.keys.add(key)
+        self.statistics.total_access += 1
+        self.keys_statistics[key]["accesses"] += 1
+        result = get_func(self, key)
+        if result:
+            self.keys_statistics[key]["hits"] += 1
+            self.statistics.total_hits += 1
+        else:
+            self.keys_statistics[key]["misses"] += 1
+        return result
+
+    return _impl
+
 
 
 class TinyLFU:
@@ -29,6 +51,11 @@ class TinyLFU:
             self.slru20 = 1
         self.slru = SLRUCache(self.slru20, self.slru_size - self.slru20)
 
+        self.statistics = None
+        self.keys_statistics = defaultdict(lambda: {"hits": 0, "misses": 0, "accesses": 0}, hits=0, misses=0,
+                                           accesses=0)
+
+    @wrapper
     def get(self, key: str):
         self.__age += 1
         if self.__age == self.__sample:
@@ -77,4 +104,19 @@ class TinyLFU:
         if value:
             return value
 
+    def monitor(self, keys=[]):
+        self.statistics = Statistics(self, keys)
+        return self.statistics
 
+    def hit_rate_key(self, key):
+        if not self.statistics:
+            raise NotImplementedError
+        if key in self.keys_statistics:
+            return (self.keys_statistics[key]["hits"] / self.keys_statistics[key]["accesses"]) * 100
+        return 0
+
+    def miss_rate_key(self, key):
+        if not self.statistics:
+            raise NotImplementedError
+
+        return (1 - self.keys_statistics[key]["hits"] / self.keys_statistics[key]["accesses"]) * 100

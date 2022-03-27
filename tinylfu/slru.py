@@ -1,9 +1,9 @@
 """
-An SLRU cache item has the following lifecycle:
+An SLRU tinylfu item has the following lifecycle:
 
 New item is inserted to probational segment. This item becomes the most recently used item in the probational segment.
 
-If the probational segment is full, the least recently used item is evicted from cache.
+If the probational segment is full, the least recently used item is evicted from tinylfu.
 If an item in the probational segment is accessed (with get or set), the item is migrate to the protected segment. This item becomes the most recently used item of the protected segment.
 
 If the protected segment is full, the least recently used item from the segment is moved to probational segment. This item becomes the most recently used item in the probational segment.
