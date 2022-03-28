@@ -4,7 +4,8 @@ A feature complete W-TinyLFU cache implementation in Python.
 
 ## Description
 
-TODO
+[W-TinyLFU](https://arxiv.org/pdf/1512.00727.pdf) uses a small admission LRU that evicts to a large Segmented LRU if accepted by the TinyLfu admission policy. TinyLfu relies on a frequency sketch to probabilistically estimate the historic usage of an entry. The window allows the policy to have a high hit rate when entries exhibit recency bursts which would otherwise be rejected. The size of the window vs main space is adaptively determined using a hill climbing optimization. This configuration enables the cache to estimate the frequency and recency of an entry with low overhead.
+
 
 ## Basic Usage
 
@@ -52,26 +53,22 @@ statistics.access_for() # Total number of accesses to the cache
 Note that a hit or miss only refers to lookups (i.e. methods `__contains__(key)`, and `operator[]`) but not insertions.
 
 
-#### Monitoring specific keys
+### Monitoring specific keys
 
-It is also possible to monitor specific keys. Say we were writing a web server accepting HTTP requests and wanted to cache resources 
-(I assume that's something people would do). 
-Because our website changes in some way every hour, 
-we'll use a timed cache with a time-to-live of one hour. 
-We're also particularly interested in how many cache hits we get for `index.html`. 
-For this, it's good to know that the empty `monitor()` call we made further up is actually a method accepting variadic arguments to forward to the constructor of an 
-internal statistics object (the empty `monitor()` calls the default constructor). One
-constructor of `Statistics` takes a number of keys to monitor in particular. 
-So calling `monitor(key1, key2, ...)` will set up monitoring for those keys. 
-We could then something like this:
+It is also possible to monitor specific keys. Say we were writing a web server accepting HTTP requests and wanted to cache resources  
+We're particularly interested in how many cache hits we get for `index.html`, `login.html`, `home.html`. 
+For this, it's good to know that the empty `monitor()` call we made further up is actually a method accepting multiple arguments.
 
+Monitor multiple keys.
 ```python
-"""Monitor multiple keys."""
 keys_to_monitor = ["index.html", "login.html", "home.html"]
 statistics_keys = cache.monitor(*keys_to_monitor)
 values = [cache[v] for v in keys_to_monitor]
 result = statistics_keys.hit_rate(*keys_to_monitor)
+```
 
+Monitor a single key.
+```python
 """Monitor a single key."""
 single_key = "index.html"
 statistics_single_key = cache.monitor(single_key)
@@ -93,3 +90,9 @@ There is a function that you can use as a decorator to cache the result of your 
 
     print('250th fibonacci number:', fibonacci(250))
 ```
+
+## References
+
+* http://highscalability.com/blog/2016/1/25/design-of-a-modern-cache.html
+* https://github.com/ben-manes/caffeine/wiki
+* https://arxiv.org/pdf/1512.00727.pdf
