@@ -29,8 +29,7 @@ def fibonacci(n):
 
 ## Extended Usage
 
-The cache also provide extra features including statistics monitoring, a decorator use like `functool.lru_cache`
-and flush to disk.
+The cache also provide extra features including statistics monitoring and a decorator use like `functool.lru_cache`.
 
 ### Statistics
 
